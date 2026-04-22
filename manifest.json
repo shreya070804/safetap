@@ -1,0 +1,17 @@
+{
+  "name": "SafeTap | Emergency Assistant",
+  "short_name": "SafeTap",
+  "description": "SafeTap - A professional, medical-grade emergency and accessibility assistant.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0f1f",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

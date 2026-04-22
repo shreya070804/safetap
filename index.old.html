@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SafeTap | Aurora Premium</title>
+    
+    <!-- Meta & SEO -->
+    <meta name="theme-color" content="#05050a">
+    <meta name="description" content="SafeTap Aurora - The future of personal safety.">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- 🌌 Animated Aurora Background -->
+    <div class="aurora-bg">
+        <div class="aurora-blob blob-1"></div>
+        <div class="aurora-blob blob-2"></div>
+        <div class="aurora-blob blob-3"></div>
+    </div>
+
+    <!-- 📱 Main Phone UI -->
+    <div class="phone-container">
+        <!-- 🏔️ Top Navigation -->
+        <nav class="navbar">
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-bolt-lightning"></i></div>
+                <span class="brand-name">SafeTap</span>
+            </div>
+            <div class="nav-right">
+                <button class="med-badge" onclick="App.showMedicalID()">
+                    <i class="fas fa-id-card-clip"></i> <span>ID</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- 🏝️ Bottom Tab Bar -->
+        <div id="user-tabs" class="tab-bar">
+            <button class="tab-btn active" data-target="screen-emergency">
+                <i class="fas fa-shield-halved"></i> <span>Safe</span>
+            </button>
+            <button class="tab-btn" data-target="screen-profile">
+                <i class="fas fa-ghost"></i> <span>Profile</span>
+            </button>
+            <button class="tab-btn" data-target="screen-history">
+                <i class="fas fa-dna"></i> <span>Logs</span>
+            </button>
+            <button class="tab-btn" data-target="screen-settings">
+                <i class="fas fa-atom"></i> <span>Setup</span>
+            </button>
+        </div>
+
+        <!-- 📂 Scrollable Area -->
+        <div class="content">
+            
+            <!-- 🚨 HOME SCREEN -->
+            <section id="screen-emergency" class="screen active">
+                <div class="system-pill">
+                    <div class="dot"></div>
+                    <span id="system-status-text">SHIELD ACTIVE</span>
+                </div>
+
+                <div class="hero-card">
+                    <h2>Welcome to the next level of security.</h2>
+                    <p>Your biometric and environmental sensors are synchronized.</p>
+                    <div class="trust-indicator" style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                        <span style="font-size: 1.5rem; font-weight: 900; color: var(--p-glow);" class="score-text">85%</span>
+                        <span style="font-size: 0.8rem; font-weight: 800; opacity: 0.6;">SAFE SCORE</span>
+                    </div>
+                </div>
+
+                <!-- 🚨 Central SOS Core -->
+                <div class="sos-area">
+                    <div class="sos-outer">
+                        <div class="sos-ring"></div>
+                        <div class="sos-ring"></div>
+                        <button id="sos-btn" class="sos-btn">
+                            SOS
+                            <span>Hold 3s</span>
+                        </button>
+                    </div>
+                    <div style="text-align: center; margin-top: 24px;">
+                        <h3 style="font-size: 1.1rem; font-weight: 800;">Emergency Dispatch</h3>
+                        <p style="color: var(--text-dim); font-size: 0.9rem;">Tap and hold to alert your network.</p>
+                    </div>
+                </div>
+
+                <!-- ⚡ Action Grid -->
+                <div class="action-grid">
+                    <div class="crystal-card" onclick="triggerLocationShare()">
+                        <i class="fas fa-map-pin"></i>
+                        <label>Locate Me</label>
+                    </div>
+                    <div class="crystal-card" onclick="triggerFakeCall()">
+                        <i class="fas fa-headset"></i>
+                        <label>Assisted Call</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 👤 PROFILE SCREEN -->
+            <section id="screen-profile" class="screen">
+                <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 8px;">Identity</h2>
+                <p style="color: var(--text-dim); margin-bottom: 32px;">Configure your emergency profile</p>
+                
+                <div class="form-group">
+                    <input type="text" id="user-name" placeholder="Full Name" class="glass-input">
+                    <input type="text" id="user-condition" placeholder="Medical Condition" class="glass-input">
+                    <input type="text" id="user-blood" placeholder="Genetic Code / Blood Type" class="glass-input">
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <button id="btn-save-profile" class="btn-crystal">Update Credentials</button>
+                </div>
+            </section>
+
+            <!-- 📊 HISTORY SCREEN -->
+            <section id="screen-history" class="screen">
+                <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 24px;">Event Log</h2>
+                <div id="historyContainer" class="history-list">
+                    <div class="hero-card" style="text-align: center;">
+                        <i class="fas fa-check-double" style="font-size: 3rem; color: var(--success-green); margin-bottom: 16px;"></i>
+                        <h3>All Secure</h3>
+                        <p>No threats detected in the log.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ⚙️ SETTINGS SCREEN -->
+            <section id="screen-settings" class="screen">
+                <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 24px;">Core Setup</h2>
+                
+                <div class="hero-card" style="margin-top: 0; padding: 24px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="font-weight: 800;">Voice Trigger</h4>
+                            <p style="font-size: 0.8rem; margin-top: 4px;">Hands-free activation</p>
+                        </div>
+                        <input type="checkbox" id="voice-trigger-toggle" checked style="width: 24px; height: 24px;">
+                    </div>
+                </div>
+
+                <button class="btn-crystal" style="background: rgba(255, 59, 59, 0.2); color: var(--sos-red); border: 1px solid var(--sos-red); box-shadow: none;" id="btn-reset-app">Reset All Protocols</button>
+            </section>
+
+        </div> <!-- end content -->
+
+        <!-- 🚨 GLOBAL ALERT OVERLAY -->
+        <div id="active-alert-overlay" class="alert-overlay hidden">
+            <h2 style="color: var(--sos-red); font-weight: 900; letter-spacing: 2px;">DISPATCHING</h2>
+            <div id="countdown-display" class="countdown">3</div>
+            <p style="color: var(--text-dim);">Hold to cancel or tap button below</p>
+            <button class="btn-crystal" style="margin-top: 40px; background: white; color: black;" onclick="Countdown.cancel()">ABORT DISPATCH</button>
+        </div>
+
+    </div> <!-- end phone-container -->
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/emergency.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

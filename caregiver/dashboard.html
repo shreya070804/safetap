@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeTap | Caregiver Dashboard</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="caregiver.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="app-header">
+        <div class="container header-content">
+            <div class="brand">
+                <div class="logo-box">
+                    <i class="fas fa-shield-heart"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>SafeTap</h1>
+                    <p>Caregiver Console</p>
+                </div>
+            </div>
+
+            <div id="connection-status" class="status-pill safe">
+                <span class="pulse-dot"></span>
+                <span id="conn-text">🟢 Live Tracking</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-main container">
+        <!-- 🎯 1. GLOBAL STATUS & MAP SECTION -->
+        <div class="hero-section">
+            <section class="card sidebar-tactical">
+                <div class="sidebar-header">
+                    <label>Operative Dispatch</label>
+                    <div class="search-box-tactical mini">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="cg-op-search" placeholder="Search operatives..." autocomplete="off">
+                    </div>
+                </div>
+                <div id="operative-list" class="sidebar-scroll">
+                    <!-- Iterated by JS -->
+                    <div class="empty-mini">Scanning for signals...</div>
+                </div>
+                <div class="sidebar-footer">
+                    <div id="user-status" class="status-label safe">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="status-label">SYSTEM SECURE</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card map-container-card">
+                <div class="map-header">
+                    <div class="map-title">
+                        <i class="fas fa-location-crosshairs"></i>
+                        <h3>Live Location Tracking</h3>
+                    </div>
+                    <span id="last-coord" class="coordinate-text">19.0760, 72.8777</span>
+                </div>
+                <div id="map" class="map-frame"></div>
+                <div id="offline-notice" class="offline-overlay hidden">
+                    <div class="offline-content">
+                        <i class="fas fa-satellite-dish"></i>
+                        <h3>SIGNAL LOST</h3>
+                        <p>User offline for more than 30 seconds</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 🎯 2. LOWER GRID SECTION -->
+        <div class="dashboard-grid">
+            <!-- SOS ALERT CARD -->
+            <section id="latest-alert-card" class="card alert-card hidden">
+                <div class="card-title red">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <h3>Emergency Alert</h3>
+                </div>
+                <div class="alert-body">
+                    <div id="alert-details" class="alert-info-row">
+                        <span id="alert-time" class="time">Just now</span>
+                        <span id="alert-location" class="location">Fetching position...</span>
+                    </div>
+                    <div id="alert-image-container" class="alert-media hidden"></div>
+                    <p id="alert-msg" class="alert-desc">High-priority emergency signal detected.</p>
+                    <button id="btn-resolve" class="btn btn-danger">
+                        <i class="fas fa-check-double"></i> Mark Responded
+                    </button>
+                </div>
+            </section>
+
+            <!-- HISTORY SECTION - TACTICAL DARK THEME -->
+            <section class="card history-card dark-theme">
+                <div class="log-controls sticky-log-header dark">
+                    <div class="card-header-row">
+                        <h3><i class="fas fa-shield-halved"></i> Global Security Feed</h3>
+                        <div class="search-box-tactical">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="cg-search-input" placeholder="Search signals..." autocomplete="off">
+                        </div>
+                        <span id="history-count" class="badge-pill dark">0 Logs Active</span>
+                    </div>
+                </div>
+                <div class="log-container-scroll dark">
+                    <div id="history-list" class="tactical-log-feed">
+                        <!-- Items rendered by JS in Dark Tactical style -->
+                        <div class="empty-state-dark">
+                            <i class="fas fa-satellite-dish"></i>
+                            <p>Scanning for signals...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ANALYTICS SECTION -->
+            <section class="card analytics-card">
+                <div class="card-header-row">
+                    <h3>Safety Analytics</h3>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span id="stat-total" class="metric-value">0</span>
+                        <label>Total SOS</label>
+                    </div>
+                    <div class="metric-item highlight">
+                        <span id="stat-24h" class="metric-value">0</span>
+                        <label>Last 24 hrs</label>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="sosChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Config -->
+    <script src="../js/supabase-config.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="caregiver.js"></script>
+</body>
+</html>
