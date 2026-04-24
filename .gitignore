@@ -1,4 +1,25 @@
+# dependencies
 node_modules/
+
+# env files
 .env
+
+# build outputs
 dist/
 build/
+
+# Vite temp folder (you accidentally committed this earlier)
+tmp_vite/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
