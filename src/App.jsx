@@ -16,8 +16,12 @@ import ContactsPage from './ContactsPage';
 
 // --- UI COMPONENTS ---
 
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/5 ${className}`}>
+const Card = ({ children, className = "", theme = 'dark' }) => (
+  <div className={`backdrop-blur-xl rounded-[2.5rem] p-8 border transition-all duration-500 shadow-2xl ${
+    theme === 'dark' 
+      ? 'bg-slate-900/50 border-white/5' 
+      : 'bg-white/70 border-slate-200'
+  } ${className}`}>
     {children}
   </div>
 );
@@ -31,7 +35,7 @@ const IconButton = ({ icon: Icon, onClick, className = "", active = false }) => 
   </button>
 );
 
-const StatCard = ({ icon: Icon, label, value, color, unit, statusColor = "emerald" }) => {
+const StatCard = ({ icon: Icon, label, value, color, unit, statusColor = "emerald", theme = 'dark', children }) => {
   const statusStyles = {
     emerald: "bg-emerald-500",
     blue: "bg-blue-500",
@@ -39,19 +43,20 @@ const StatCard = ({ icon: Icon, label, value, color, unit, statusColor = "emeral
     rose: "bg-rose-500"
   };
   return (
-    <Card className={`card-hover p-6 border-l-4 ${color.replace('bg-', 'border-')}`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center text-white`}>
-          <Icon size={24} />
+    <Card className="flex flex-col gap-4 group" theme={theme}>
+      <div className="flex items-center justify-between">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${color}`}>
+          <Icon size={24} className={theme === 'dark' ? 'text-white' : 'text-slate-700'} />
         </div>
         <div className={`w-2 h-2 rounded-full ${statusStyles[statusColor]} animate-pulse`}></div>
       </div>
       <div>
-        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p>
+        <p className={`text-[11px] font-black uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-black text-white">{value}</span>
+          <span className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{value}</span>
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{unit}</span>
         </div>
+        {children}
       </div>
     </Card>
   );
@@ -598,23 +603,51 @@ function App() {
 
   const isCaregiver = profile?.role === 'caregiver';
 
+  const navItems = [
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'hospitals', icon: MapPin, label: 'Nearby Help' },
+    { id: 'contacts', icon: Users, label: 'Emergency Circle' },
+    { id: 'profile', icon: User, label: 'My Record' }
+  ];
+
   return (
-    <div className={`min-h-screen flex ${theme === 'dark' ? 'dark bg-slate-950' : 'bg-slate-900'} text-white font-sans`}>
+    <div className={`min-h-screen flex ${theme === 'dark' ? 'dark bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'} font-sans transition-colors duration-500`}>
       <Toaster position="top-right" toastOptions={{
-        style: { background: '#0f172a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', fontWeight: 'bold' },
+        style: theme === 'dark' 
+          ? { background: '#0f172a', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', fontWeight: 'bold' }
+          : { background: '#fff', color: '#0f172a', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '1rem', fontWeight: 'bold' },
       }} />
-      {/* SIDEBAR */}
-      <nav className="w-24 lg:w-72 hidden md:flex flex-col bg-slate-900 dark:bg-slate-950 p-6 h-screen sticky top-0 transition-all border-r border-white/5">
+
+      {/* MOBILE NAVIGATION BAR */}
+      <div className={`md:hidden fixed bottom-0 left-0 w-full backdrop-blur-2xl border-t z-50 px-4 pb-8 pt-4 flex items-center justify-around shadow-2xl transition-colors ${theme === 'dark' ? 'bg-slate-900/80 border-white/5' : 'bg-white/80 border-slate-200'}`}>
+        {navItems.map((item) => (
+          <button 
+            key={item.id}
+            onClick={() => setCurrentView(item.id)}
+            className={`flex flex-col items-center gap-1.5 transition-all duration-300 ${currentView === item.id ? 'text-blue-500 scale-110' : 'text-slate-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-all ${currentView === item.id ? (theme === 'dark' ? 'bg-blue-600/10' : 'bg-blue-50') : ''}`}>
+              <item.icon size={22} fill={currentView === item.id ? "currentColor" : "none"} />
+            </div>
+            <span className={`text-[8px] font-black uppercase tracking-[0.2em] transition-all ${currentView === item.id ? (theme === 'dark' ? 'text-blue-500' : 'text-blue-600') : 'opacity-60'}`}>
+              {item.label.split(' ')[0]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* SIDEBAR (Desktop) */}
+      <nav className={`w-24 lg:w-72 hidden md:flex flex-col p-6 h-screen sticky top-0 transition-all border-r ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-200'}`}>
         <div className="flex items-center gap-4 mb-12 px-2">
           <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 border border-white/10">
             <Shield size={24} fill="white" />
           </div>
-          <span className="text-xl font-black text-white hidden lg:block italic tracking-tight">SafeTap</span>
+          <span className={`text-xl font-black hidden lg:block italic tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>SafeTap</span>
         </div>
 
         {/* User Profile Mini Card */}
         <div className="mb-10 px-2 hidden lg:block">
-          <div className="bg-white/5 rounded-3xl p-4 flex items-center gap-4 border border-white/10 hover:bg-white/10 transition-all cursor-pointer group">
+          <div className={`rounded-3xl p-4 flex items-center gap-4 border transition-all cursor-pointer group ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-slate-100 border-slate-200 hover:bg-slate-200'}`}>
             <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white font-black text-xl group-hover:scale-105 transition-transform">
               {profile?.full_name?.charAt(0) || 'U'}
             </div>
@@ -652,6 +685,17 @@ function App() {
         </div>
 
         <div className="mt-auto space-y-4 pt-8 border-t border-white/5">
+          {/* Global Desktop SOS */}
+          <div className="px-2 pb-4 hidden lg:block">
+            <button 
+              onMouseDown={handleSosHold}
+              onMouseUp={handleSosRelease}
+              className="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-2xl p-4 font-black flex flex-col items-center gap-2 transition-all shadow-xl shadow-rose-500/20 active:scale-95"
+            >
+              <Shield size={24} fill="white" />
+              <span className="text-[10px] uppercase tracking-widest">Hold SOS</span>
+            </button>
+          </div>
           <button onClick={() => window.supabase.auth.signOut()} className="w-full flex items-center gap-4 p-4 rounded-2xl text-rose-500 hover:bg-rose-500/10 transition-all">
             <LogOut size={24} />
             <span className="font-bold hidden lg:block">Sign Out</span>
@@ -659,47 +703,134 @@ function App() {
         </div>
       </nav>
 
-      {/* MOBILE NAV */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around p-4 z-[100]">
-        {[LayoutDashboard, MapPin, Phone, User].map((Icon, i) => (
-          <Icon key={i} className="text-slate-400" size={24} />
-        ))}
-      </div>
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 p-6 lg:p-12 overflow-x-hidden min-h-screen">
-        <div className="max-w-6xl mx-auto">
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-10 pb-32 md:pb-10 overflow-y-auto max-w-[1600px] mx-auto">
+        <div className="max-w-7xl mx-auto">
+          
+          {/* USER CONTEXT HEADER */}
+          <div className="flex items-center justify-between mb-8 md:hidden">
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black">
+                 {profile?.full_name?.charAt(0)}
+               </div>
+               <span className="font-black text-sm text-white tracking-tight italic">SafeTap</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+            </div>
+          </div>
           
           {currentView === 'dashboard' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <header className="flex justify-between items-end">
+              <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-1">Safety Dashboard</h2>
-                  <p className="text-slate-500 font-medium">Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}</p>
+                  <h2 className={`text-3xl font-black tracking-tight mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Safety Dashboard</h2>
+                  <div className="flex items-center gap-3">
+                    <p className="text-slate-500 font-medium">Welcome back, {profile?.full_name?.split(' ')[0] || 'User'}</p>
+                    <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Safe: Just Now</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
-                   <Badge variant="blue" className="hidden sm:block">Status: Protected</Badge>
-                   <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <div className={`flex items-center gap-4 px-4 py-2 rounded-2xl border ${theme === 'dark' ? 'bg-slate-900 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-3 bg-slate-200 dark:bg-slate-800 rounded-sm p-[1px] relative">
+                         <div className="h-full bg-emerald-500 rounded-[1px]" style={{ width: '85%' }}></div>
+                         <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-r-sm"></div>
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500">85%</span>
+                    </div>
+                    <div className="w-px h-4 bg-slate-200 dark:bg-slate-800"></div>
+                    <div className="flex items-center gap-2">
+                      <CloudRain size={14} className="text-blue-400" />
+                      <span className={`text-[10px] font-black ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>24°C</span>
+                    </div>
+                  </div>
+                  <IconButton icon={Bell} active={false} className="relative">
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800"></div>
+                  </IconButton>
                 </div>
               </header>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard icon={Footprints} label="Daily Steps" value={steps} color="bg-blue-600" unit="Steps" />
-                <StatCard icon={Activity} label="Heart Rate" value={heartRate} color="bg-rose-500" unit="BPM" />
-                <StatCard icon={TrendingUp} label="Activity Level" value={activity} color="bg-emerald-500" unit="Status" />
-                <StatCard icon={Clock} label="Last Sync" value={lastSync || (connected ? "Just now" : "Never")} color="bg-amber-500" unit="" />
+              {/* FLOATING SOS (Mobile) */}
+              <button 
+                onMouseDown={handleSosHold}
+                onMouseUp={handleSosRelease}
+                className="fixed bottom-32 right-6 w-16 h-16 bg-rose-600 text-white rounded-full flex items-center justify-center shadow-2xl shadow-rose-500/40 z-[1000] md:hidden active:scale-90 transition-transform"
+              >
+                <Shield size={32} fill="white" />
+              </button>
+
+              {/* EMERGENCY SOS TRIGGER (MOBILE TOP) */}
+              <div className="xl:hidden">
+                <button 
+                  onMouseDown={handleSosHold}
+                  onMouseUp={handleSosRelease}
+                  onMouseLeave={handleSosRelease}
+                  onTouchStart={(e) => { e.preventDefault(); handleSosHold(); }}
+                  onTouchEnd={(e) => { e.preventDefault(); handleSosRelease(); }}
+                  disabled={sendingSos}
+                  className={`w-full rounded-[3rem] p-10 min-h-[340px] flex flex-col items-center justify-center text-white relative overflow-hidden active:scale-95 transition-all backdrop-blur-xl border border-white/20 shadow-2xl ${sendingSos ? 'bg-slate-700/80' : 'bg-rose-600/90 shadow-rose-500/20'}`}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 w-full bg-rose-500/40 backdrop-blur-sm transition-all duration-100 ease-linear" style={{ height: `${sosProgress}%` }}></div>
+                  
+                  {sendingSos ? (
+                    <Loader2 className="animate-spin mb-4" size={48} />
+                  ) : (
+                    <div className="relative mb-4">
+                      <Shield size={64} className="relative z-10" fill="white" />
+                      {sosHolding && (
+                        <div className="absolute -top-2 -right-2 bg-white text-rose-600 w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-xl animate-bounce">
+                          {Math.ceil((100 - sosProgress) / 20)}s
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  <span className="text-4xl font-black relative z-10 italic tracking-tighter drop-shadow-lg">{sendingSos ? 'SENDING...' : 'SOS'}</span>
+                  <p className="text-sm font-black opacity-90 relative z-10 mt-2 tracking-widest uppercase flex items-center gap-2">
+                    {sendingSos ? 'Broadcasting coordinates' : (sosHolding ? 'RELEASING CANCELS' : 'Hold for Emergency')}
+                  </p>
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-4">
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 ml-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                <StatCard icon={Footprints} label="Daily Steps" value={steps} color="bg-blue-600/10" unit="Steps" theme={theme} />
+                <StatCard 
+                  icon={Activity} 
+                  label="Heart Rate" 
+                  value={heartRate} 
+                  color="bg-rose-500/10" 
+                  unit="BPM" 
+                  theme={theme}
+                  children={
+                    <div className="mt-4 flex flex-col gap-1">
+                      <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-slate-500">
+                        <span>Stress Score</span>
+                        <span className="text-rose-500">Normal</span>
+                      </div>
+                      <div className="h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-rose-500" style={{ width: '35%' }}></div>
+                      </div>
+                    </div>
+                  }
+                />
+                <StatCard icon={TrendingUp} label="Activity Level" value={activity} color="bg-emerald-500/10" unit="Status" theme={theme} />
+                <StatCard icon={Clock} label="Last Sync" value={lastSync || (connected ? "Just now" : "Never")} color="bg-amber-500/10" unit="" theme={theme} />
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                <div className="xl:col-span-2 space-y-4">
+                  <h3 className={`text-sm font-black uppercase tracking-widest flex items-center gap-2 ml-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                     <MapPin size={16} className="text-rose-500" />
                     📍 Live Location
                   </h3>
-                  <Card className="overflow-hidden p-0 h-[400px] relative card-hover border border-white/5">
-                    <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
+                  <Card className="overflow-hidden p-0 h-[400px] relative border border-white/5" theme={theme}>
+                    <div className="absolute top-6 left-6 z-[1001] flex flex-col gap-2">
                       <Badge variant="emerald" className="shadow-lg backdrop-blur-md bg-emerald-500/80 text-white border-none">Live GPS Active</Badge>
-                      <div className="bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-white/5 space-y-2 text-[10px] font-bold">
+                      <div className={`${theme === 'dark' ? 'bg-slate-900/90 border-white/5' : 'bg-white/90 border-slate-200'} backdrop-blur-md p-3 rounded-2xl border space-y-2 text-[10px] font-bold shadow-xl`}>
                          <div className="flex items-center gap-2 text-rose-500">
                             <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
                             <span>YOU (LIVE)</span>
@@ -710,18 +841,18 @@ function App() {
                          </div>
                       </div>
                     </div>
-                    <MapView onLocationUpdate={setUserLocation} />
+                    <MapView onLocationUpdate={setUserLocation} theme={theme} />
                   </Card>
                 </div>
 
-                <div className="flex flex-col gap-6">
+                <div className="hidden xl:flex flex-col gap-6">
                   <div className="flex flex-col gap-4">
                     <button 
                       onMouseDown={handleSosHold}
                       onMouseUp={handleSosRelease}
                       onMouseLeave={handleSosRelease}
                       disabled={sendingSos}
-                      className={`flex-1 rounded-[3rem] p-8 flex flex-col items-center justify-center text-white relative overflow-hidden active:scale-95 transition-all backdrop-blur-xl border border-white/20 ${sendingSos ? 'bg-slate-700/80' : 'bg-rose-600/90'}`}
+                      className={`flex-1 rounded-[3rem] p-8 flex flex-col items-center justify-center text-white relative overflow-hidden active:scale-95 transition-all backdrop-blur-xl border border-white/20 shadow-2xl ${sendingSos ? 'bg-slate-700/80' : 'bg-rose-600/90 shadow-rose-500/20'}`}
                     >
                       <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
                       <div className="absolute bottom-0 left-0 w-full bg-rose-500/40 backdrop-blur-sm transition-all duration-100 ease-linear" style={{ height: `${sosProgress}%` }}></div>
@@ -744,28 +875,28 @@ function App() {
                         {sendingSos ? 'Broadcasting coordinates' : (sosHolding ? 'RELEASING CANCELS' : 'Hold for Emergency')}
                       </p>
                     </button>
-                    <p className="text-center text-slate-500 font-bold text-[10px] uppercase tracking-widest px-4 leading-relaxed opacity-70">
+                    <p className={`text-center font-bold text-[10px] uppercase tracking-widest px-4 leading-relaxed opacity-70 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                       Alerts emergency circle with GPS link
                     </p>
                   </div>
                   
-                  <a 
-                    href="tel:112"
-                    className="flex items-center gap-6 p-8 bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] border border-white/5 hover:border-blue-500/30 card-hover transition-all"
+                  <button 
+                    onClick={() => window.open('tel:112')}
+                    className={`flex items-center gap-6 p-8 rounded-[2.5rem] border transition-all shadow-xl group ${theme === 'dark' ? 'bg-slate-900/50 border-white/5 hover:border-blue-500/30' : 'bg-white border-slate-200 hover:border-blue-200 shadow-slate-200/50'}`}
                   >
-                    <div className="w-16 h-16 bg-blue-500/10 rounded-3xl flex items-center justify-center text-blue-500">
+                    <div className={`w-16 h-16 rounded-3xl flex items-center justify-center transition-transform group-hover:scale-110 ${theme === 'dark' ? 'bg-blue-500/10 text-blue-500' : 'bg-blue-50 text-blue-600'}`}>
                       <PhoneIncoming size={32} />
                     </div>
-                    <div>
-                      <h4 className="font-black text-xl text-white">Quick Help</h4>
+                    <div className="text-left">
+                      <h4 className={`font-black text-xl ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Quick Help</h4>
                       <p className="text-blue-500 text-sm font-black uppercase tracking-widest mt-1 underline">Call 112</p>
                     </div>
-                  </a>
+                  </button>
                 </div>
               </div>
 
               {/* ALERT HISTORY SECTION */}
-              <Card className="mt-8">
+              <Card className="mt-8" theme={theme}>
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <h4 className="text-xl font-black text-slate-900 dark:text-white">SOS History</h4>
@@ -796,10 +927,12 @@ function App() {
                       </button>
                     </div>
                   )) : (
-                    <div className="text-center py-16 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                      <Radio size={48} className="mx-auto text-slate-200 dark:text-slate-800 mb-4" />
-                      <h5 className="text-slate-900 dark:text-white font-black text-sm mb-1">🚫 No alerts yet</h5>
-                      <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Your emergency activity will appear here</p>
+                    <div className={`flex flex-col items-center justify-center py-20 text-center rounded-[2.5rem] border border-dashed ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                       <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                          <Check size={32} />
+                       </div>
+                       <h5 className={`font-black text-xl mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Stay Safe!</h5>
+                       <p className="text-slate-500 font-medium max-w-xs px-6">No emergency transmissions recorded in your current node session.</p>
                     </div>
                   )}
                 </div>
@@ -811,46 +944,75 @@ function App() {
             <ContactsPage 
               user={session.user} 
               onBack={() => setCurrentView('dashboard')} 
+              theme={theme}
             />
           )}
 
           {currentView === 'hospitals' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h2 className="text-3xl font-black text-white mb-1">Nearby Help</h2>
-                  <p className="text-slate-500 font-medium tracking-tight">Surgical centers & Emergency units within 5km</p>
+              <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <div className="flex flex-col gap-1">
+                  <h2 className={`text-3xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Nearby Help</h2>
+                  <p className="text-slate-500 font-medium text-sm tracking-tight">Emergency units within 5km radius</p>
                 </div>
-                <button 
-                  onClick={findHospitals} 
-                  disabled={scanning}
-                  className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 border border-blue-400/30 hover:bg-blue-700 active:scale-95 transition-all"
-                >
-                  {scanning ? <Loader2 className="animate-spin" /> : <Activity size={20} />}
-                  Refresh Scan
-                </button>
+                
+                <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                   <select className={`px-4 py-3 rounded-xl border font-bold text-[10px] uppercase tracking-widest outline-none transition-all ${theme === 'dark' ? 'bg-slate-900 border-white/5 text-slate-400' : 'bg-white border-slate-200 text-slate-600'}`}>
+                      <option>All Facilities</option>
+                      <option>Hospitals</option>
+                      <option>Pharmacies</option>
+                   </select>
+                   <div className={`px-4 py-3 rounded-xl border flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}>
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                      Open Now
+                   </div>
+                   <button 
+                     onClick={findHospitals} 
+                     disabled={scanning}
+                     className="flex-1 lg:flex-none bg-blue-600 text-white px-6 py-3 rounded-xl font-black flex items-center justify-center gap-3 border border-blue-400/30 hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-900/20 text-xs"
+                   >
+                     {scanning ? <Loader2 className="animate-spin" size={16} /> : <Activity size={16} />}
+                     <span>{scanning ? 'SCANNING' : 'REFRESH'}</span>
+                   </button>
+                </div>
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {hospitals.map((h, i) => (
-                  <Card className={`group card-hover overflow-hidden relative border border-white/5 ${i === 0 ? 'bg-emerald-500/5' : ''}`}>
-                    {i === 0 && <div className="absolute top-4 right-4"><Badge variant="emerald">NEAREST</Badge></div>}
+                {hospitals.map((h) => (
+                  <Card key={h.id || h.name} theme={theme} className={`group card-hover overflow-hidden relative border border-white/5 ${hospitals.indexOf(h) === 0 && theme === 'dark' ? 'bg-emerald-500/5' : ''}`}>
+                    {hospitals.indexOf(h) === 0 && <div className="absolute top-4 right-4"><Badge variant="emerald">NEAREST</Badge></div>}
                     <div className="p-8">
                       <div className="flex justify-between items-start mb-6">
-                        <div className="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${theme === 'dark' ? 'bg-rose-500/10 text-rose-500' : 'bg-rose-50 text-rose-600'}`}>
                           <Plus size={32} />
                         </div>
-                        <Badge variant="blue">{h.distance.toFixed(1)} km</Badge>
+                        <div className="text-right">
+                          <Badge variant="blue" className="mb-1">{h.distance.toFixed(1)} km</Badge>
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">~{Math.round(h.distance * 3)} MIN DRIVE</p>
+                        </div>
                       </div>
-                      <h4 className="text-xl font-black mb-1 text-white">{h.name}</h4>
-                      <p className="text-emerald-500 font-bold text-xs uppercase tracking-widest mb-8">{h.status}</p>
+                      <div className="mb-6">
+                        <h4 className={`text-xl font-black mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{h.name}</h4>
+                        <div className="flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                           <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-widest">OPEN NOW</p>
+                        </div>
+                      </div>
                       
-                      <button 
-                        onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lon}`)}
-                        className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 active:scale-95 transition-all"
-                      >
-                        <Navigation size={18} fill="white" /> View Route
-                      </button>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lon}`)}
+                          className="bg-blue-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all text-xs"
+                        >
+                          <Navigation size={16} fill="white" /> Route
+                        </button>
+                        <button 
+                          onClick={() => window.open(`tel:102`)}
+                          className={`py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all text-xs border ${theme === 'dark' ? 'bg-white/5 text-white border-white/10 hover:bg-white/10' : 'bg-slate-100 text-slate-900 border-slate-200 hover:bg-slate-200'}`}
+                        >
+                          <Phone size={16} /> Call
+                        </button>
+                      </div>
                     </div>
                   </Card>
                 ))}
@@ -860,36 +1022,38 @@ function App() {
 
           {currentView === 'profile' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <header className="flex justify-between items-end">
+              <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-white mb-1">Medical Record</h2>
+                  <h2 className={`text-3xl font-black mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Medical Record</h2>
                   <p className="text-slate-500 font-medium">Secure biometric and identification data</p>
                 </div>
                 <button 
                   onClick={() => toast.loading("🔐 Edit Mode: Authenticating...")}
-                  className="bg-white/5 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 border border-white/10 hover:bg-white/10 transition-all"
+                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 border transition-all ${theme === 'dark' ? 'bg-white/5 text-white border-white/10 hover:bg-white/10' : 'bg-slate-100 text-slate-900 border-slate-200 hover:bg-slate-200'}`}
                 >
                   <Settings size={18} />
                   Edit Record
                 </button>
               </header>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <Card className="lg:col-span-1 flex flex-col items-center py-12">
-                  <div className="w-32 h-32 bg-white/5 rounded-[2.5rem] flex items-center justify-center text-slate-300 mb-6 border border-white/10">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <Card theme={theme} className="lg:col-span-1 flex flex-col items-center py-12">
+                  <div className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center mb-6 border ${theme === 'dark' ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
                     <User size={64} />
                   </div>
-                  <h3 className="text-2xl font-black tracking-tight text-white">{profile?.full_name}</h3>
+                  <h3 className={`text-2xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{profile?.full_name}</h3>
                   <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.3em] mt-2 mb-10">Authorized Access</p>
                   
                   <div className="w-full px-6 space-y-4">
-                    <div className="flex justify-between items-center p-5 bg-white/5 rounded-2xl border border-white/5">
-                      <span className="text-slate-500 font-black text-[10px] uppercase tracking-widest">Blood Type</span>
-                      <span className="text-rose-500 font-black text-lg">{profile?.blood_type}</span>
+                    <div className={`flex flex-col items-center p-8 rounded-[2rem] border relative overflow-hidden ${theme === 'dark' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-rose-50 border-rose-200 shadow-lg shadow-rose-100'}`}>
+                      <span className="text-slate-500 font-black text-[10px] uppercase tracking-widest mb-2">Blood Type</span>
+                      <span className="text-rose-600 font-black text-6xl italic tracking-tighter drop-shadow-md">{profile?.blood_type || 'O+'}</span>
+                      <div className="mt-4 px-4 py-1 bg-rose-600 text-white text-[8px] font-black rounded-full uppercase tracking-widest">Critical Info</div>
                     </div>
-                    <div className="flex justify-between items-center p-5 bg-white/5 rounded-2xl border border-white/5">
-                      <span className="text-slate-500 font-black text-[10px] uppercase tracking-widest">ID Status</span>
-                      <span className="text-emerald-500 font-black text-[10px] uppercase tracking-widest">Verified</span>
+                    
+                    <div className={`flex justify-between items-center p-5 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                      <span className="text-slate-500 font-black text-[10px] uppercase tracking-widest">Organ Donor</span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>Registered</span>
                     </div>
                   </div>
 
@@ -902,36 +1066,65 @@ function App() {
                   </button>
                 </Card>
 
-                <div className="lg:col-span-2 space-y-6">
-                  <Card>
-                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 border-b pb-4">Vital Statistics</h4>
+                <div className="xl:col-span-2 space-y-6">
+                  <Card theme={theme}>
+                    <h4 className={`text-sm font-black uppercase tracking-widest mb-8 border-b pb-4 ${theme === 'dark' ? 'text-slate-400 border-white/5' : 'text-slate-500 border-slate-100'}`}>Emergency Specifications</h4>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10">
+                      <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-4">Rescue Medication</p>
+                        <div className="flex items-center gap-3">
+                           <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl"><Pill size={20} /></div>
+                           <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>EpiPen Injected</span>
+                        </div>
+                      </div>
+                      <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-4">Critical Conditions</p>
+                        <div className="flex items-center gap-3">
+                           <div className="p-3 bg-rose-500/10 text-rose-500 rounded-xl"><Activity size={20} /></div>
+                           <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Type 1 Diabetic</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
                       <div>
                         <p className="text-slate-400 font-bold text-xs uppercase mb-2">Primary Physician</p>
-                        <p className="text-xl font-bold leading-tight break-words">{profile?.physician || 'Not Assigned'}</p>
+                        <p className={`text-xl font-bold leading-tight break-words ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{profile?.physician || 'Not Assigned'}</p>
                       </div>
                       <div>
                         <p className="text-slate-400 font-bold text-xs uppercase mb-2">Emergency Hub</p>
-                        <p className="text-xl font-bold">{profile?.emergency_contact || 'None'}</p>
+                        <p className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{profile?.emergency_contact || 'None'}</p>
                       </div>
                     </div>
-                    <div className="mt-10">
-                      <p className="text-slate-400 font-bold text-xs uppercase mb-4">Known Contraindications (Allergies)</p>
-                      <div className="flex flex-wrap gap-2">
-                        {profile?.allergies?.split(',').map((a, i) => (
-                          <span key={i} className="px-4 py-2 bg-white/5 text-slate-300 rounded-xl text-[11px] font-black uppercase tracking-wider border border-white/5">{a.trim()}</span>
-                        )) || <span className="text-slate-600 italic text-sm">No allergies recorded.</span>}
+                    
+                    <div className="mt-10 space-y-6">
+                      <div>
+                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-4">Medication Allergies</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['Penicillin', 'Sulfa'].map((a, i) => (
+                            <span key={i} className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border ${theme === 'dark' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>{a}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-4">Environmental Allergies</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['Peanuts', 'Latex'].map((a, i) => (
+                            <span key={i} className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border ${theme === 'dark' ? 'bg-white/5 text-slate-300 border-white/5' : 'bg-slate-50 text-slate-600 border-slate-100'}`}>{a}</span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </Card>
                   
-                  <Card className="bg-gradient-to-br from-blue-600 to-indigo-800 text-white border-none p-10 relative overflow-hidden">
+                  <Card className="xl:col-span-2 p-10 bg-gradient-to-br from-blue-600 to-indigo-800 border-none relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                    <h4 className="text-3xl font-black mb-4 italic tracking-tighter">Guardian Link</h4>
+                    <h4 className="text-3xl font-black text-white mb-4 italic tracking-tighter">Guardian Link</h4>
                     <p className="text-white/80 font-medium mb-10 max-w-sm leading-relaxed">Your safety coordinator is receiving encrypted telemetry every 30 seconds for maximum protection.</p>
                     <button 
                       onClick={handleSetupBackupLink}
-                      className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-slate-50"
+                      className="w-full sm:w-auto bg-white text-blue-600 px-8 py-4 rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-slate-50"
                     >
                       Setup Backup Link
                     </button>
@@ -944,16 +1137,16 @@ function App() {
           {currentView === 'settings' && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <header>
-                <h2 className="text-3xl font-black text-white mb-1">Settings</h2>
+                <h2 className={`text-3xl font-black mb-1 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Settings</h2>
                 <p className="text-slate-500 font-medium">Node configuration & Tactical tools</p>
               </header>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <Card className="p-8 space-y-6">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-4">Display Options</h3>
+                <Card className="p-8 space-y-6" theme={theme}>
+                  <h3 className={`text-sm font-black uppercase tracking-widest border-b pb-4 ${theme === 'dark' ? 'text-slate-400 border-white/5' : 'text-slate-500 border-slate-100'}`}>Display Options</h3>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-white">Dark Interface</p>
+                      <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Dark Interface</p>
                       <p className="text-xs text-slate-500">Enable high-contrast night mode</p>
                     </div>
                     <button 
@@ -979,8 +1172,8 @@ function App() {
                   </div>
                 </Card>
 
-                <Card className="p-8 space-y-6">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-4">Security Arsenal</h3>
+                <Card theme={theme} className="p-8 space-y-6">
+                  <h3 className={`text-sm font-black uppercase tracking-widest border-b pb-4 ${theme === 'dark' ? 'text-slate-400 border-white/5' : 'text-slate-500 border-slate-100'}`}>Security Arsenal</h3>
                   <div className="space-y-4">
                     <button 
                       onClick={() => toast("🚨 Fake Call Initiated...\nYour phone will ring in 10 seconds.", { icon: '📞' })}
@@ -994,7 +1187,7 @@ function App() {
                     </button>
                     
                     <button 
-                      className="w-full bg-slate-800 text-white p-4 rounded-2xl font-black flex items-center justify-between opacity-50 cursor-not-allowed"
+                      className={`w-full p-4 rounded-2xl font-black flex items-center justify-between opacity-50 cursor-not-allowed ${theme === 'dark' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-400'}`}
                     >
                       <div className="flex items-center gap-3">
                         <Bell size={18} />
@@ -1005,20 +1198,59 @@ function App() {
                   </div>
                 </Card>
 
-                <Card className="p-8 space-y-6">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-4">SOS Configuration</h3>
-                  <div className="flex items-center justify-between opacity-50 cursor-not-allowed">
+                <Card theme={theme} className="p-8 space-y-6">
+                  <h3 className={`text-sm font-black uppercase tracking-widest border-b pb-4 ${theme === 'dark' ? 'text-slate-400 border-white/5' : 'text-slate-500 border-slate-100'}`}>SOS Configuration</h3>
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-white">Auto-Dispatch Emergency</p>
+                      <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Auto-Dispatch Emergency</p>
                       <p className="text-xs text-slate-500">Skip hold timer (High Risk)</p>
                     </div>
-                    <div className="w-14 h-8 bg-slate-700 rounded-full p-1">
+                    <div className={`w-14 h-8 rounded-full p-1 ${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'}`}>
                       <div className="w-6 h-6 bg-white rounded-full shadow-md"></div>
                     </div>
                   </div>
-                  <p className="text-xs font-bold text-slate-500 p-4 bg-slate-950 rounded-xl border-l-4 border-amber-500">
-                    ⚠️ Configuration locked during active node session.
-                  </p>
+                  
+                  <div className={`p-4 rounded-2xl border flex flex-col gap-2 ${theme === 'dark' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+                    <div className="flex gap-3">
+                      <AlertTriangle className="text-amber-500 shrink-0" size={16} />
+                      <p className={`text-[10px] font-black leading-tight uppercase tracking-widest ${theme === 'dark' ? 'text-amber-200/60' : 'text-amber-700'}`}>
+                        System Lock Active
+                      </p>
+                    </div>
+                    <p className={`text-[9px] font-medium leading-relaxed ${theme === 'dark' ? 'text-slate-500' : 'text-slate-600'}`}>
+                      To prevent accidental triggers during active monitoring, high-risk security toggles are locked until the node is manually disarmed.
+                    </p>
+                  </div>
+                </Card>
+
+                <Card theme={theme} className="p-8 space-y-6">
+                  <h3 className={`text-sm font-black uppercase tracking-widest border-b pb-4 ${theme === 'dark' ? 'text-slate-400 border-white/5' : 'text-slate-500 border-slate-100'}`}>Node Preferences</h3>
+                  
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>SOS Countdown</p>
+                        <p className="text-xs text-slate-500">Duration of the hold trigger</p>
+                      </div>
+                      <select className={`px-3 py-2 rounded-xl border font-bold text-[10px] outline-none ${theme === 'dark' ? 'bg-slate-900 border-white/5 text-white' : 'bg-slate-50 border-slate-200'}`}>
+                        <option>3 Seconds</option>
+                        <option selected>5 Seconds</option>
+                        <option>10 Seconds</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Region / Node</p>
+                        <p className="text-xs text-slate-500">Current tactical deployment</p>
+                      </div>
+                      <select className={`px-3 py-2 rounded-xl border font-bold text-[10px] outline-none ${theme === 'dark' ? 'bg-slate-900 border-white/5 text-white' : 'bg-slate-50 border-slate-200'}`}>
+                        <option>Global (Standard)</option>
+                        <option>Asia / Pacific</option>
+                        <option>North America</option>
+                      </select>
+                    </div>
+                  </div>
                 </Card>
               </div>
             </div>

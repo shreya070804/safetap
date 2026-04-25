@@ -1,8 +1,7 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Loader2 } from "lucide-react";
 
 // 🔴 Custom RED marker
 const redIcon = new L.Icon({
@@ -11,52 +10,77 @@ const redIcon = new L.Icon({
   iconAnchor: [16, 32],
 });
 
-export default function MapView({ onLocationUpdate }) {
-  const [position, setPosition] = useState(null);
+// Component to handle map center updates without re-mounting
+function ChangeView({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.setView(center, zoom);
+  }, [center, zoom]);
+  return null;
+}
+
+export default function MapView({ onLocationUpdate, theme = 'dark' }) {
+  // Use localStorage for instant load if available, default to Mumbai/NYC fallback
+  const lastPos = JSON.parse(localStorage.getItem('lastKnownLocation'));
+  const [position, setPosition] = useState(lastPos || [19.0760, 72.8777]); 
+  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
+    const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+        const newPos = [lat, lng];
 
-        console.log("LIVE LOCATION:", lat, lng);
-
-        setPosition([lat, lng]);
+        setPosition(newPos);
+        setLocked(true);
+        localStorage.setItem('lastKnownLocation', JSON.stringify(newPos));
+        
         if (onLocationUpdate) {
-          onLocationUpdate([lat, lng]);
+          onLocationUpdate(newPos);
         }
       },
-      (err) => {
-        console.log("LOCATION ERROR:", err);
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      (err) => console.log("LOCATION ERROR:", err),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // ⛔ Premium Loading State
-  if (!position) {
-    return (
-      <div className="flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 rounded-[20px] border-2 border-dashed border-slate-200 dark:border-slate-700 h-[350px] w-full">
-        <Loader2 className="animate-spin text-blue-600 mb-3" size={32} />
-        <p className="text-slate-500 font-bold text-sm tracking-tight">Locking GPS Coordinates...</p>
-      </div>
-    );
-  }
-
   return (
-    <MapContainer
-      key={position.toString()}
-      center={position}
-      zoom={16}
-      style={{ height: "350px", width: "100%", borderRadius: "12px" }}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <div className={`relative w-full h-full min-h-[400px] rounded-[inherit] overflow-hidden ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-100'}`}>
+      {!locked && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <div className={`${theme === 'dark' ? 'bg-slate-900/80 text-white border-white/10' : 'bg-white/80 text-slate-900 border-slate-200'} backdrop-blur-md px-4 py-2 rounded-full border flex items-center gap-2 shadow-xl`}>
+            <div className={`w-2 h-2 rounded-full animate-pulse ${theme === 'dark' ? 'bg-amber-500' : 'bg-blue-600'}`}></div>
+            <span className="text-[10px] font-black uppercase tracking-widest">Optimizing GPS...</span>
+          </div>
+        </div>
+      )}
 
-      {/* 🔴 RED CURRENT LOCATION MARKER */}
-      <Marker position={position} icon={redIcon}>
-        <Popup>🚨 You are here (Live Location)</Popup>
-      </Marker>
-    </MapContainer>
+      <MapContainer
+        center={position}
+        zoom={16}
+        zoomControl={false}
+        style={{ height: "100%", width: "100%" }}
+        attributionControl={false}
+      >
+        <ChangeView center={position} zoom={16} />
+        
+        {/* Dynamic Tile Server based on theme */}
+        <TileLayer 
+          url={theme === 'dark' 
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          }
+          subdomains='abcd'
+          maxZoom={20}
+        />
+
+        <Marker position={position} icon={redIcon}>
+          <Popup>🚨 You are here (Live Location)</Popup>
+        </Marker>
+      </MapContainer>
+    </div>
   );
 }
